@@ -1,0 +1,27 @@
+version 0.3.4
+    Bugfix for the database menu as recommended by Giuseppe.
+
+version 0.3.3
+    Workaround for the transparency bug. Now it forces transparency level to -32768 to avoid problems.
+
+version 0.3.2 
+    Bugfixes thanks to Paolo Cavalini
+    Finished the migration to psycopg using PGManager's utils.
+    Now the user can choose a python script that is dinamically loaded instead of choosing a folder on the Loader GUI.
+    The script now doesn't require a postgis installation. gdal2wktraster.py was embedded on the script and should be upgraded from time to time. This way non-server users can load data too with just a plain gdal installation.
+version 0.3.1
+    bugfixes thanks to Noli Sicad
+
+version 0.3
+    Created a new loader interface. The user is now able to load data to postgis using the plugin. 
+    Refactoring aiming to be more like other Postgis Plugins and use psycopg as postgis module.
+
+versions 0.2.x
+    bugfixes
+    The code was prepared for gdal version 1.8 and new stuff Jorge implemented but they are not backwards compatible so these changes are still frozen.
+
+version 0.2
+    The plugin now connects to the database using PyQt SQL to read what are the available tables there and shows metadata.
+
+version 0.1
+    The plugin loads data using a input box.
