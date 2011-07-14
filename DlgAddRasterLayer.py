@@ -58,14 +58,22 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
 
     
     def copyTableName(self,i,j):
-        self.lineEdit.setText(self.tableWidget.item(i,0).text()+"."+self.tableWidget.item(i,1).text())
+        #test if the table is external. GDAL doesn't suport external yet.
+        if (self.tableWidget.item(i,4).text()=="True"):
+            self.lineEdit.setText("GDAL does not support external tables yet.")
+        else:
+            self.lineEdit.setText(self.tableWidget.item(i,0).text()+"."+self.tableWidget.item(i,1).text())
 
     # run method that performs all the real work
     def run(self): 
         table=self.getTable().split(".") #splits table name from schema
+        if (table[0]=="GDAL does not support external tables yet"):
+            QtGui.QMessageBox.warning(self,"Error", "GDAL does not support external tables yet")
+            return False
         connstring = str(conn.getConnString(self,self.getCurrentConnection()))
         mode=self.comboBox_2.currentIndex()+1
         name=""
+        
         #setting table name and mode
         if (mode!=3): #if not, then read entire database
             if len(table)>1:
@@ -73,8 +81,10 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
                 connstring+=" schema="+table[0]
             connstring+=' table='+table[-1]+' mode='+str(mode)
             name+="."+table[-1]
-        rlayer = QgsRasterLayer(connstring, name)
-        
+        try:
+            rlayer = QgsRasterLayer(connstring, name)
+        except :
+            QtGui.QMessageBox.warning(None,"Error","Could not load raster layer.")        
         #workaround for the nodata problem sets properties to fix the bug
         rlayer.setNoDataValue(-32768)
         rlayer.rasterTransparency().initializeTransparentPixelList(-32768)

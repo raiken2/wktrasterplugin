@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui
 from ui.DlgRasterLoader import Ui_DlgRasterLoader
 import conn, os, sys, platform
 import postgis_utils
-
+import gdal
 class buffer:
     def __init__(self,connstring):
         parmlist=connstring.split(" ")
@@ -36,6 +36,7 @@ class buffer:
         self.db._exec_sql(self.cursor, string)
     def commit(self):
         self.db.con.commit()
+        del self.db
 
 
 # create the dialog for zoom to point
@@ -50,7 +51,7 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.loadRaster)
         QtCore.QObject.connect(self.pushButton, QtCore.SIGNAL("clicked()"), self.browseRaster)
-        
+        self.widget.setVisible(False)
 
     def checkPostgisRasterExtension(self,connstring):
         pass
@@ -60,6 +61,7 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
     def browseRaster(self):
         fileName = str(QtGui.QFileDialog.getOpenFileName(self,"Open Image", os.getcwd(), "Image Files (*.tif)"));
         self.lineEdit.setText(fileName)
+        self.getMetadata(fileName)
         
     def loadRaster(self):
         connstring = str(conn.getConnString(self,self.getCurrentConnection()))
@@ -68,20 +70,30 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         #running gdal2postgis.py
         fileName=str(self.lineEdit.text())
         tablename=str(self.lineEdit_3.text())#(os.path.split(fileName)[-1])[:-4]
-        output=fileName[:-4]+'.sql'
         epsg=str(self.lineEdit_2.text())
-        blocksize=str(self.lineEdit_4.text())
-        cmd=['qgis','-r',fileName,"-t",tablename,"-l","1","-k",blocksize,"-s",epsg,"-I","-M"] #"-o",output,
-        sys.argv=cmd
-        import raster2pgsql
-        #the sql buffer is going to run the commands as they are being sent to the buffer
-        self.plainTextEdit.appendPlainText("Connecting to database...")
-        sqlBuffer=buffer(connstring)
-        sys.stdout=sqlBuffer
-        #start the translation
-        self.plainTextEdit.appendPlainText("Storing on database...")
-        raster2pgsql.main()    
-        sqlBuffer.commit()
-        self.plainTextEdit.appendPlainText("Done.")
+        blocksizex=str(self.spinBox_2.value())
+        blocksizey=str(self.spinBox_3.value())
+        nover=self.spinBox.value()
+        for i in range(1,nover+1):
+            cmd=['qgis','-r',fileName,"-t",tablename,"-l",str(i),"-s",epsg,"-I","-M"] #"-o",output,
+            if (self.checkBox.isChecked()): cmd+=["-k",blocksizex+"x"+blocksizey]
+            if (self.checkBox_2.isChecked()): cmd.append("-R")
+            sys.argv=cmd
+            import raster2pgsql
+            #the sql buffer is going to run the commands as they are being sent to the buffer
+            self.plainTextEdit.appendPlainText("Connecting to database...")
+            sqlBuffer=buffer(connstring)
+            sys.stdout=sqlBuffer
+            #start the translation
+            self.plainTextEdit.appendPlainText("Storing overview "+str(i)+"on database...")
+            raster2pgsql.main()    
+            sqlBuffer.commit()
+            self.plainTextEdit.appendPlainText("Done.")
+            del raster2pgsql
+            del sqlBuffer
         
-        
+    def getMetadata(self,filename):
+        ds=gdal.Open(filename)
+        self.spinBox_2.setValue(ds.RasterXSize)
+        self.spinBox_3.setValue(ds.RasterYSize)
+        del ds
