@@ -24,7 +24,7 @@ def name():
 def description():
   return "Allows connecting to database and choose wktraster tables."
 def version(): 
-  return "Version 0.4.1" 
+  return "Version 0.4.2" 
 def qgisMinimumVersion():
   return "1.0"
 def classFactory(iface): 
