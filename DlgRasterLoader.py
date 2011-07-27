@@ -24,6 +24,8 @@ from ui.DlgRasterLoader import Ui_DlgRasterLoader
 import conn, os, sys, platform
 import postgis_utils
 import gdal
+import re 
+
 class buffer:
     def __init__(self,connstring):
         parmlist=connstring.split(" ")
@@ -93,7 +95,13 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
             del sqlBuffer
         
     def getMetadata(self,filename):
+        #filename='/home/mauricio/Cartografia_Sistematica/Rio/landsat7_2005/L71217076_07620050617_B10.TIF'
         ds=gdal.Open(filename)
-        self.spinBox_2.setValue(ds.RasterXSize)
-        self.spinBox_3.setValue(ds.RasterYSize)
+        #pattern that searches for EPSG values
+        pattern=re.compile(r'\[?EPSG[^\]]*\]') 
+        #captures the last EPSG in the projection scription
+        epsg=pattern.findall(ds.GetProjection())[-1]
+        self.lineEdit_2.setText(str(epsg.split('\"')[-2])) 
+        #self.spinBox_2.setValue(ds.RasterXSize)
+        #self.spinBox_3.setValue(ds.RasterYSize)
         del ds
