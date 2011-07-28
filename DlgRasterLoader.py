@@ -66,6 +66,8 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         self.getMetadata(fileName)
         
     def loadRaster(self):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        
         connstring = str(conn.getConnString(self,self.getCurrentConnection()))
         self.checkPostgisRasterExtension(connstring)
         self.plainTextEdit.appendPlainText("Checking parameters...")
@@ -94,14 +96,26 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
             del raster2pgsql
             del sqlBuffer
         
+        QApplication.restoreOverrideCursor()
+        
     def getMetadata(self,filename):
         #filename='/home/mauricio/Cartografia_Sistematica/Rio/landsat7_2005/L71217076_07620050617_B10.TIF'
         ds=gdal.Open(filename)
         #pattern that searches for EPSG values
         pattern=re.compile(r'\[?EPSG[^\]]*\]') 
-        #captures the last EPSG in the projection scription
-        epsg=pattern.findall(ds.GetProjection())[-1]
-        self.lineEdit_2.setText(str(epsg.split('\"')[-2])) 
+        #captures the every EPSG in the projection description (contains elipsoid, units, etc)
+        epsglist=pattern.findall(ds.GetProjection())
+        if (len(epsglist)>0):
+            epsg=epsglist[-1]
+            pattern=re.compile(r'[\'"]\d*[\'"]')
+            epsg=pattern.search(epsg)
+            if (epsg==None):
+                self.lineEdit_2.setText('-1')
+            else:
+                self.lineEdit_2.setText(epsg.group().strip('\"\'') )
         #self.spinBox_2.setValue(ds.RasterXSize)
         #self.spinBox_3.setValue(ds.RasterYSize)
+        
+        
+        
         del ds
