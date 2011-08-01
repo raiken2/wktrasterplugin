@@ -38,10 +38,45 @@ class buffer:
         self.db._exec_sql(self.cursor, string)
     def commit(self):
         self.db.con.commit()
-        del self.db
+        #del self.db
+        
+class rasterLoaderProcess(QtCore.QThread):
+    def __init__(self,connstring,parent,fileName,tablename,epsg,blocksizex,blocksizey,nover,isexternal):
+        QtCore.QThread.__init__(self)
+        #setting main parameters
+        self.cmd=['qgis','-r',fileName,"-t",tablename,"-s",epsg,"-I","-M"]
+        self.cmd+=["-k",blocksizex+"x"+blocksizey]
+        if (isexternal): self.cmd.append("-R")
+        self.connstring=connstring
+        self.parent=parent
+        self.nover=nover
+        
+    def write(self,text):
+        self.emit(QtCore.SIGNAL("writeText(PyQt_PyObject)"),text)
+        
+    def run(self):
+        #starting the overview loop
+        self.write("Connecting to database...")
+        #the sql buffer is going to run the commands as they are being sent to the buffer
+        self.sqlBuffer=buffer(self.connstring)
+        sys.stdout=self.sqlBuffer
+        
+        for i in range(1,self.nover+1):
+            #"-o",output,
+            self.write("Storing overview "+str(i)+" on database...")
+            cmdi=self.cmd[:]
+            if (i>1): cmdi+=["-l",str(i)]
+            
+            sys.argv=cmdi
+            import raster2pgsql
+            #start the translation
+            raster2pgsql.main()
+            self.sqlBuffer.commit()
+            self.write("Finished storing overview "+str(i)+".")
+            del raster2pgsql
+        del self.sqlBuffer
+        
 
-
-# create the dialog for zoom to point
 class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
     def __init__(self): 
         QtGui.QDialog.__init__(self) 
@@ -61,9 +96,10 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         return self.comboBox.currentText()
         
     def browseRaster(self):
-        fileName = str(QtGui.QFileDialog.getOpenFileName(self,"Open Image", os.getcwd(), "Image Files (*.tif)"));
-        self.lineEdit.setText(fileName)
-        self.getMetadata(fileName)
+        fileName = QtGui.QFileDialog.getOpenFileName(self,"Open Image", os.getcwd(), "Image Files (*.tif)");
+        if (fileName):
+            self.lineEdit.setText(str(fileName))
+            self.getMetadata(str(fileName))
         
     def loadRaster(self):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
@@ -78,25 +114,16 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         blocksizex=str(self.spinBox_2.value())
         blocksizey=str(self.spinBox_3.value())
         nover=self.spinBox.value()
-        for i in range(1,nover+1):
-            cmd=['qgis','-r',fileName,"-t",tablename,"-l",str(i),"-s",epsg,"-I","-M"] #"-o",output,
-            if (self.checkBox.isChecked()): cmd+=["-k",blocksizex+"x"+blocksizey]
-            if (self.checkBox_2.isChecked()): cmd.append("-R")
-            sys.argv=cmd
-            import raster2pgsql
-            #the sql buffer is going to run the commands as they are being sent to the buffer
-            self.plainTextEdit.appendPlainText("Connecting to database...")
-            sqlBuffer=buffer(connstring)
-            sys.stdout=sqlBuffer
-            #start the translation
-            self.plainTextEdit.appendPlainText("Storing overview "+str(i)+"on database...")
-            raster2pgsql.main()    
-            sqlBuffer.commit()
-            self.plainTextEdit.appendPlainText("Done.")
-            del raster2pgsql
-            del sqlBuffer
+        isexternal=self.checkBox_2.isChecked()
+        self.process=rasterLoaderProcess(connstring, self, fileName, tablename, epsg, blocksizex, blocksizey, nover, isexternal)
+        QtCore.QObject.connect(self.process,QtCore.SIGNAL('writeText(PyQt_PyObject)'),self.plainTextEdit.appendPlainText)
+        QtCore.QObject.connect(self.process,QtCore.SIGNAL('finished()'),self.finishLoadRaster)
+        self.process.start()
         
-        QApplication.restoreOverrideCursor()
+
+    def finishLoadRaster(self):
+        self.plainTextEdit.appendPlainText("Finished.")
+        QtGui.QApplication.restoreOverrideCursor()
         
     def getMetadata(self,filename):
         #filename='/home/mauricio/Cartografia_Sistematica/Rio/landsat7_2005/L71217076_07620050617_B10.TIF'

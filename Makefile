@@ -1,13 +1,23 @@
-# Makefile for a PyQGIS plugin 
-UI_FILES = Ui_wktRaster.py
+UI_SOURCES=$(wildcard ui/*.ui) $(wildcard db_plugins/*/ui/*.ui)
+UI_FILES=$(patsubst %.ui,%_ui.py,$(UI_SOURCES))
 
-RESOURCE_FILES = resources.py
+RC_SOURCES=$(wildcard *.qrc) $(wildcard db_plugins/*/*.qrc)
+RC_FILES=$(patsubst %.qrc,%.py,$(RC_SOURCES)) 
 
-default: compile
-	compile: $(UI_FILES) $(RESOURCE_FILES)
+GEN_FILES = ${UI_FILES} ${RC_FILES}
 
-%.py : %.qrc
-	pyrcc4 -o $@  $<
+all: $(GEN_FILES)
+ui: $(UI_FILES)
+resources: $(RC_FILES)
 
-%.py : %.ui
-	pyuic4 -o $@ $<
+$(UI_FILES): %_ui.py: %.ui
+	pyuic4 -o $@ $< || return 0
+	
+$(RC_FILES): %.py: %.qrc
+	pyrcc4 -o $@ $< || return 0
+
+clean:
+	rm -f $(GEN_FILES) *.pyc
+
+package:
+	make && cd .. && rm -f db_manager.zip && zip -r db_manager.zip db_manager -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\*
