@@ -1,3 +1,5 @@
+version 0.4.3
+	Added thread for the loader. Now the user is able to cancel and see messages while loading.
 
 version 0.4.2
 	New options on the loader interface. Now it's able to build overviews.

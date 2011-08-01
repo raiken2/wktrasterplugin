@@ -24,12 +24,12 @@ def name():
 def description():
   return "Allows connecting to database and choose wktraster tables."
 def version(): 
-  return "Version 0.4.2" 
+  return "Version 0.4.3" 
 def qgisMinimumVersion():
   return "1.0"
 def classFactory(iface): 
   # load wktRaster class from file wktRaster
-  from wktRaster import wktRaster 
+  from wktRasterPlugin import wktRaster 
   return wktRaster(iface)
 
 
