@@ -46,6 +46,8 @@ class wktRaster:
         self.iface.addToolBarIcon(self.AddLayeraction)
         self.iface.addToolBarIcon(self.LoadLayeraction)
         #add to Database menu
+        nextAction = self.iface.mainWindow().menuBar().actions()[3].menu().actions()[3]
+        self.iface.mainWindow().menuBar().actions()[3].menu().insertAction(nextAction,self.AddLayeraction)
         if hasattr(self.iface, "addPluginToDatabaseMenu"):
             self.iface.addPluginToDatabaseMenu("PostGIS &Raster", self.AddLayeraction)
             self.iface.addPluginToDatabaseMenu("PostGIS &Raster", self.LoadLayeraction)
@@ -62,6 +64,7 @@ class wktRaster:
         else:
             self.iface.removePluginMenu("&Postgis Raster", self.AddLayeraction)
             self.iface.removePluginMenu("&Postgis Raster", self.LoadLayeraction)
+        self.iface.mainWindow().menuBar().actions()[4].menu().removeAction(self.AddLayeraction)
         self.iface.removeToolBarIcon(self.AddLayeraction)
         self.iface.removeToolBarIcon(self.LoadLayeraction)
 

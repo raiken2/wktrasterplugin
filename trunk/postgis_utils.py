@@ -134,8 +134,10 @@ class GeoDB:
 			raise DbError(e)
 		
 		self.has_postgis = self.check_postgis()
-
+		self.has_raster=self._checkRaster()
+		
 		self.check_geometry_columns_table()
+		self._checkRasterColumnsTable()
 
 		# a counter to ensure that the cursor will be unique
 		self.last_cursor_id = 0
@@ -162,13 +164,13 @@ class GeoDB:
 	
 	def _checkRaster(self):
 		""" check whether postgis_version is present in catalog """
-		c = self.connection.cursor()
+		c = self.con.cursor()
 		self._exec_sql(c, u"SELECT COUNT(*) FROM pg_proc WHERE proname = 'postgis_raster_lib_version'")
 		self.has_raster = c.fetchone()[0] > 0
 		return self.has_raster
 	
 	def _checkRasterColumnsTable(self):
-		c = self.connection.cursor()
+		c = self.con.cursor()
 		self._exec_sql(c, u"SELECT relname FROM pg_class WHERE relname = 'raster_columns' AND pg_class.relkind IN ('v', 'r')")
 		self.has_raster_columns = (len(c.fetchall()) != 0)
 		
@@ -176,7 +178,7 @@ class GeoDB:
 			self.has_raster_columns_access = False
 		else:			
 			# find out whether has privileges to access geometry_columns table
-			self.has_raster_columns_access = self.getTablePrivileges('raster_columns')[0]
+			self.has_raster_columns_access = self.get_table_privileges('raster_columns')[0]
 		return self.has_raster_columns
 	
 	def get_postgis_info(self):
@@ -273,6 +275,75 @@ class GeoDB:
 			for i, geo_item in enumerate(c.fetchall()):
 				if geo_item[7]:
 					items[i] = geo_item
+			
+		return items
+	
+	def list_rastertables(self, schema=None):
+		""" get list of table with a raster column
+			it returns:
+				name (table name)
+				namespace (schema)
+				type = 'view' (is a view?)
+				owner 
+				tuples
+				pages
+				raster_column:
+					r_column (or pg_attribute.attname, the raster column name)
+					pixel type (or pg_attribute.atttypid::regtype::text, the raster column type name)
+					block size
+					internal or external
+					srid
+		"""
+		# first find out whether postgis is enabled
+		if not self.has_postgis:
+			return []
+		c = self.con.cursor()
+		if not self.has_raster:
+			return []
+		
+		if schema:
+			schema_where = " AND nspname = '%s' " % self._quote_str(schema)
+		else:
+			schema_where = " AND (nspname != 'information_schema' AND nspname !~ 'pg_') "
+			
+		# LEFT OUTER JOIN: like LEFT JOIN but if there are more matches, for join, all are used (not only one)
+		
+		geometry_column_from = u""
+		if self.has_raster_columns and self.has_raster_columns_access:
+			geometry_column_from = u"""LEFT OUTER JOIN raster_columns AS geo ON 
+						cla.relname = geo.r_table_name AND nsp.nspname = r_table_schema AND 
+						lower(att.attname) = lower(r_column)"""
+		# get geometry info from geometry_columns if exists
+		# discovery of all tables and whether they contain a geometry column
+		sql = u"""SELECT 
+						cla.relname, nsp.nspname, cla.relkind = 'v', pg_get_userbyid(relowner), cla.reltuples, cla.relpages, 
+						CASE WHEN geo.r_column IS NOT NULL THEN geo.r_column ELSE att.attname END, 
+						geo.pixel_types,
+						geo.scale_x,
+						geo.scale_y,
+						geo.out_db,
+						geo.srid
+
+					FROM pg_class AS cla 
+					JOIN pg_namespace AS nsp ON 
+						nsp.oid = cla.relnamespace
+
+					JOIN pg_attribute AS att ON 
+						att.attrelid = cla.oid AND 
+						att.atttypid = 'raster'::regtype OR 
+						att.atttypid IN (SELECT oid FROM pg_type WHERE typbasetype='raster'::regtype ) 
+
+					""" + geometry_column_from + """ 
+
+					WHERE cla.relkind IN ('v', 'r') """ + schema_where + """ 
+					ORDER BY nsp.nspname, cla.relname, att.attname"""
+
+		self._exec_sql(c, sql)
+		
+		items = []
+		for tbl in c.fetchall():
+			item = list(tbl)
+			items.append( item )
 			
 		return items
 	

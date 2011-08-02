@@ -70,16 +70,15 @@ def getConnString(parent,selected):
 
 def listTables(parent,connstring):
     """This method connects to the database using a python Postgres connection and reads the raster_columns table"""
-    attrMap={1:0,2:1,4:2,5:3,9:6,10:7,6:4,7:5} #this a map of the raster_columns column order with the displayed order
+    attrMap={1:0,0:1,11:2,8:6,9:7,10:4,7:3} #this a map of the raster_columns column order with the displayed order
     parmlist=connstring.split(" ")
     try:
         db = GeoDB(host=parmlist[2].split("=")[1],dbname=parmlist[1].split("=")[1],user=parmlist[3].split("=")[1],passwd=parmlist[4].split("=")[1],port=int(parmlist[5].split("=")[1]))
-        cursor = db.con.cursor()   
-        result=db._exec_sql(cursor,"select * from raster_columns")
-        rows=cursor.fetchall()        
+        rows=db.list_rastertables()
     except DbError as e:
         QMessageBox.warning(None,"Error",str(e))#"Connection failed to "+connstring)
         return []
+         
          
     tables=[]
     for row in rows:

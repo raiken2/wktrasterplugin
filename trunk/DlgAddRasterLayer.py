@@ -19,9 +19,9 @@ email                : mauricio.dev@gmail.com
  ***************************************************************************/
 """
 import os,sys
-sys.path.append("/home/mauricio/aplics/eclipse/plugins/org.python.pydev.debug_1.6.4.2011010200/pysrc")
+"""sys.path.append("/home/mauricio/aplics/eclipse/plugins/org.python.pydev.debug_1.6.4.2011010200/pysrc")
 import pydevd
-pydevd.settrace()
+pydevd.settrace()"""
 
 from PyQt4 import QtCore, QtGui 
 from ui.DlgAddRasterLayer import Ui_DlgAddRasterLayer
@@ -37,7 +37,7 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
         dblist = conn.listDatabases()
         self.comboBox.addItems(dblist.keys())
         if len(dblist.keys()) > 0:
-            self.listTables(0)
+            self.updateUIMode()
         QtCore.QObject.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self.listTables)
         QtCore.QObject.connect(self.tableWidget, QtCore.SIGNAL("cellClicked(int,int)"), self.copyTableName)
         QtCore.QObject.connect(self.tableWidget, QtCore.SIGNAL("cellClicked(int,int)"), self.listRIds)
@@ -108,6 +108,8 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
 
     # run method that performs all the real work
     def run(self): 
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        
         table=str(self.getTable()).split(".") #splits table name from schema
         if (table[0]=="GDAL does not support external tables yet"):
             QtGui.QMessageBox.warning(self,"Error", "GDAL does not support external tables yet")
@@ -148,4 +150,5 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
                 status=QgsMapLayerRegistry.instance().addMapLayer(rlayer)
             else:
                 QtGui.QMessageBox.warning(self,"Error", "Could not load "+connstring)
+        QtGui.QApplication.restoreOverrideCursor()
 
