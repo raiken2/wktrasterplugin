@@ -1,9 +1,9 @@
-version 0.4.3
+version 0.5.0
 	Added thread for the loader. Now the user is able to cancel and see messages while loading.
-	check postgis and raster extension
-	Added more options for raster loading. Now the plugin can load single row raster data.
+	Added more options for raster loading. Now the plugin can load single row raster data and vector bounding boxes of tiled rasters.
+	The "Add PostGIS raster layer" tool now check's for available raster colums and read metadata from raster_columns.
+	Layer listing now checks for postgis and pgraster extensions.
 	
-
 version 0.4.2
 	New options on the loader interface. Now it's able to build overviews.
 
