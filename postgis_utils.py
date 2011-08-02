@@ -160,6 +160,25 @@ class GeoDB:
 		self._exec_sql(c, "SELECT COUNT(*) FROM pg_proc WHERE proname = 'postgis_version'")
 		return (c.fetchone()[0] > 0)
 	
+	def _checkRaster(self):
+		""" check whether postgis_version is present in catalog """
+		c = self.connection.cursor()
+		self._exec_sql(c, u"SELECT COUNT(*) FROM pg_proc WHERE proname = 'postgis_raster_lib_version'")
+		self.has_raster = c.fetchone()[0] > 0
+		return self.has_raster
+	
+	def _checkRasterColumnsTable(self):
+		c = self.connection.cursor()
+		self._exec_sql(c, u"SELECT relname FROM pg_class WHERE relname = 'raster_columns' AND pg_class.relkind IN ('v', 'r')")
+		self.has_raster_columns = (len(c.fetchall()) != 0)
+		
+		if not self.has_raster_columns:
+			self.has_raster_columns_access = False
+		else:			
+			# find out whether has privileges to access geometry_columns table
+			self.has_raster_columns_access = self.getTablePrivileges('raster_columns')[0]
+		return self.has_raster_columns
+	
 	def get_postgis_info(self):
 		""" returns tuple about postgis support:
 			- lib version

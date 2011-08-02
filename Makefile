@@ -1,5 +1,5 @@
 UI_SOURCES=$(wildcard ui/*.ui) $(wildcard db_plugins/*/ui/*.ui)
-UI_FILES=$(patsubst %.ui,%_ui.py,$(UI_SOURCES))
+UI_FILES=$(patsubst %.ui,%.py,$(UI_SOURCES))
 
 RC_SOURCES=$(wildcard *.qrc) $(wildcard db_plugins/*/*.qrc)
 RC_FILES=$(patsubst %.qrc,%.py,$(RC_SOURCES)) 
@@ -10,7 +10,7 @@ all: $(GEN_FILES)
 ui: $(UI_FILES)
 resources: $(RC_FILES)
 
-$(UI_FILES): %_ui.py: %.ui
+$(UI_FILES): %.py: %.ui
 	pyuic4 -o $@ $< || return 0
 	
 $(RC_FILES): %.py: %.qrc

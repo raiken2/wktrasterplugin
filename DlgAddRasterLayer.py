@@ -18,6 +18,10 @@ email                : mauricio.dev@gmail.com
  *                                                                         *
  ***************************************************************************/
 """
+import os,sys
+sys.path.append("/home/mauricio/aplics/eclipse/plugins/org.python.pydev.debug_1.6.4.2011010200/pysrc")
+import pydevd
+pydevd.settrace()
 
 from PyQt4 import QtCore, QtGui 
 from ui.DlgAddRasterLayer import Ui_DlgAddRasterLayer
@@ -36,7 +40,10 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
             self.listTables(0)
         QtCore.QObject.connect(self.comboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self.listTables)
         QtCore.QObject.connect(self.tableWidget, QtCore.SIGNAL("cellClicked(int,int)"), self.copyTableName)
+        QtCore.QObject.connect(self.tableWidget, QtCore.SIGNAL("cellClicked(int,int)"), self.listRIds)
+        QtCore.QObject.connect(self.modeComboBox, QtCore.SIGNAL("currentIndexChanged(int)"), self.updateUIMode)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.run)
+        
     
     def getCurrentConnection(self):
         return self.comboBox.currentText() 
@@ -44,7 +51,7 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
     def getTable(self):
         return self.lineEdit.text()
     
-    def listTables(self,i):
+    def listTables(self,i=0):
         """This method connects to the database using a python Postgres connection and reads the raster_columns table"""
         connstring=conn.getConnString(self,self.getCurrentConnection())
         tables=conn.listTables(self,connstring) #returns a list of pairs (index, value)
@@ -64,34 +71,81 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
         else:
             self.lineEdit.setText(self.tableWidget.item(i,0).text()+"."+self.tableWidget.item(i,1).text())
 
+    def getMode(self):
+        mode=['convexhull','row','table','db']
+        return (mode[self.modeComboBox.currentIndex()])
+
+    def listRIds(self,i=0,j=0):
+        if (self.getMode()=='row'): 
+            connstring=str(conn.getConnString(self,self.getCurrentConnection()))
+            rids=conn.listRIDs(self, connstring, str(self.tableWidget.item(i,0).text())+"."+str(self.tableWidget.item(i,1).text()) )
+            self.ridComboBox.addItems(rids)
+
+    def updateUIMode(self,i=0):
+        mode=self.getMode()
+        if (mode=='db'):
+            self.ridComboBox.setVisible(False)
+            self.label_4.setVisible(False)
+            self.tableWidget.setVisible(False)
+            self.label_2.setVisible(False)
+            self.lineEdit.setVisible(False)
+        elif (mode=='row'):
+            self.ridComboBox.setVisible(True)
+            self.label_4.setVisible(True)
+            self.tableWidget.setVisible(True)
+            self.label_2.setVisible(True)
+            self.lineEdit.setVisible(True)
+            self.listTables()
+            self.listRIds()
+        else: #(convexhull and table)
+            self.ridComboBox.setVisible(False)
+            self.label_4.setVisible(False)
+            self.tableWidget.setVisible(True)
+            self.label_2.setVisible(True)
+            self.lineEdit.setVisible(True)
+            self.listTables()
+        self.adjustSize()
+
     # run method that performs all the real work
     def run(self): 
-        table=self.getTable().split(".") #splits table name from schema
+        table=str(self.getTable()).split(".") #splits table name from schema
         if (table[0]=="GDAL does not support external tables yet"):
             QtGui.QMessageBox.warning(self,"Error", "GDAL does not support external tables yet")
             return False
         connstring = str(conn.getConnString(self,self.getCurrentConnection()))
-        mode=self.comboBox_2.currentIndex()+1
+        mode=self.getMode()
         name=""
         
-        #setting table name and mode
-        if (mode!=3): #if not, then read entire database
-            if len(table)>1:
-                name+=table[0]
-                connstring+=" schema="+table[0]
-            connstring+=' table='+table[-1]+' mode='+str(mode)
-            name+="."+table[-1]
+        #setting table name and mode 
+        if (mode!='db'): #connection string doesn't include table and schema if the whole db is being read
+            if len(table)>1: #checking if there is schema in the table name
+                name+=str(table[0])
+                connstring+=" schema="+str(table[0])
+            connstring+=' table='+str(table[-1])
+            name+="."+str(table[-1])
+            if (mode=='row'):
+                connstring+=' mode=1 where=\'rid='+str(self.ridComboBox.currentText())+'\''
+            elif (mode=='table'):
+                connstring+=' mode=2'
+        rlayer=None
         try:
-            rlayer = QgsRasterLayer(connstring, name)
+            if (mode=='convexhull'):#asked for a vector layer
+                uri=QgsDataSourceURI(connstring[4:]) #removes the PG: from the connstring
+                uri.setDataSource("", "(select rid,st_convexhull(rast) as geom from "+name+")", "geom", "", "rid")
+                rlayer=QgsVectorLayer(uri.uri(),name,'postgres')
+            else:
+                rlayer = QgsRasterLayer(connstring, name)
+                rlayer.setNoDataValue(-32768)
+                rlayer.rasterTransparency().initializeTransparentPixelList(-32768)
         except :
-            QtGui.QMessageBox.warning(None,"Error","Could not load raster layer.")        
-        #workaround for the nodata problem sets properties to fix the bug
-        rlayer.setNoDataValue(-32768)
-        rlayer.rasterTransparency().initializeTransparentPixelList(-32768)
+            QtGui.QMessageBox.warning(None,"Error","Could not load layer.")        
+                #workaround for the nodata problem sets properties to fix the bug
         
-        #try to add layer to qgis. 
-        if rlayer.isValid():
-            status=QgsMapLayerRegistry.instance().addMapLayer(rlayer)
-        else:
-            QtGui.QMessageBox.warning(self,"Error", "Could not load "+connstring)
+        
+        #try to add layer to qgis.
+        if rlayer: 
+            if rlayer.isValid():
+                status=QgsMapLayerRegistry.instance().addMapLayer(rlayer)
+            else:
+                QtGui.QMessageBox.warning(self,"Error", "Could not load "+connstring)
 

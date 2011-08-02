@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'DlgRasterLoader.ui'
+# Form implementation generated from reading ui file 'ui/DlgRasterLoader.ui'
 #
-# Created: Thu Jul 14 16:27:51 2011
+# Created: Mon Aug  1 17:00:39 2011
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -96,7 +96,7 @@ class Ui_DlgRasterLoader(object):
         self.spinBox_2.setMaximumSize(QtCore.QSize(101, 27))
         self.spinBox_2.setMinimum(16)
         self.spinBox_2.setMaximum(16384)
-        self.spinBox_2.setProperty(_fromUtf8("value"), 64)
+        self.spinBox_2.setProperty(_fromUtf8("value"), 128)
         self.spinBox_2.setObjectName(_fromUtf8("spinBox_2"))
         self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.spinBox_2)
         self.label_8 = QtGui.QLabel(self.widget)
@@ -117,7 +117,7 @@ class Ui_DlgRasterLoader(object):
         self.spinBox_3.setMaximumSize(QtCore.QSize(101, 27))
         self.spinBox_3.setMinimum(16)
         self.spinBox_3.setMaximum(16384)
-        self.spinBox_3.setProperty(_fromUtf8("value"), 64)
+        self.spinBox_3.setProperty(_fromUtf8("value"), 128)
         self.spinBox_3.setObjectName(_fromUtf8("spinBox_3"))
         self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.spinBox_3)
         self.label_7 = QtGui.QLabel(self.widget)
@@ -137,7 +137,7 @@ class Ui_DlgRasterLoader(object):
         self.spinBox.setMinimumSize(QtCore.QSize(101, 27))
         self.spinBox.setMaximumSize(QtCore.QSize(101, 27))
         self.spinBox.setMinimum(1)
-        self.spinBox.setProperty(_fromUtf8("value"), 1)
+        self.spinBox.setProperty(_fromUtf8("value"), 3)
         self.spinBox.setObjectName(_fromUtf8("spinBox"))
         self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.spinBox)
         self.formLayout_2.setWidget(6, QtGui.QFormLayout.SpanningRole, self.widget)
