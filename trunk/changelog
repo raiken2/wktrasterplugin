@@ -1,5 +1,8 @@
 version 0.4.3
 	Added thread for the loader. Now the user is able to cancel and see messages while loading.
+	check postgis and raster extension
+	Added more options for raster loading. Now the plugin can load single row raster data.
+	
 
 version 0.4.2
 	New options on the loader interface. Now it's able to build overviews.

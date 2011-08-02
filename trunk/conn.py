@@ -1,7 +1,34 @@
 from PyQt4.QtCore import * 
 from PyQt4.QtGui import *
 from qgis.core import *
+
+#from .db_plugins import supportedDbTypes, createDbPlugin
+#from .db_plugins.plugin import InvalidDataException, ConnectionError, Table, DbError
 from postgis_utils import *
+
+class SingletonConn(object):
+    _instance = None
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super(SingletonConn, cls).__new__(cls)
+        return cls._instance
+    def __init__(self):
+        #self.dbplugin = createDbPlugin('postgis')
+        pass
+    
+    def listDatabases(self):
+        actionsDb = {}
+        settings = QSettings()
+        settings.beginGroup("/PostgreSQL/connections")
+        keys = settings.childGroups()
+    
+        for key in keys:
+            actionsDb[unicode(key)] = key
+        settings.endGroup()
+        return actionsDb
+    
+
+#GeoDB=SingletonConn()
 
 def listDatabases():
     actionsDb = {}
@@ -13,6 +40,8 @@ def listDatabases():
         actionsDb[unicode(key)] = key
     settings.endGroup()
     return actionsDb
+
+
     
 def getConnString(parent,selected):
     settings = QSettings()
@@ -25,8 +54,7 @@ def getConnString(parent,selected):
     get_value_str = lambda x: unicode(settings.value(x).toString())
     host, database, username, password = map(get_value_str, ["host", "database", "username", "password"])
     port = settings.value("port").toInt()[0]
-
-
+    
     #searching for saved username qgis 1.5 >
     if not ( settings.value("saveUsername").toBool()):
         (username, ok) = QInputDialog.getText(parent, "Enter user name", "Enter user name for connection \"%s\":" % selected, QLineEdit.Normal)
@@ -78,3 +106,20 @@ def listTables(parent,connstring):
         QMessageBox.warning(parent,"Error","Connection failed to "+conn)
         return None
     query=db.exec_(sql)"""
+
+def listRIDs(parent, connstring, table):
+    """This method connects to the database using a python Postgres connection and reads the rids available in a raster table"""
+    parmlist=connstring.split(" ")
+    try:
+        db = GeoDB(host=parmlist[2].split("=")[1],dbname=parmlist[1].split("=")[1],user=parmlist[3].split("=")[1],passwd=parmlist[4].split("=")[1],port=int(parmlist[5].split("=")[1]))
+        cursor = db.con.cursor()   
+        result=db._exec_sql(cursor,"select rid from "+str(table))
+        rows=cursor.fetchall()        
+    except DbError as e:
+        QMessageBox.warning(None,"Error",str(e))#"Connection failed to "+connstring)
+        return []
+         
+    rids=[]
+    for row in rows:
+        rids.append(str(row[0]))
+    return rids

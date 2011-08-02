@@ -21,7 +21,7 @@ email                : mauricio.dev@gmail.com
 
 from PyQt4 import QtCore, QtGui 
 from ui.DlgRasterLoader import Ui_DlgRasterLoader
-import conn, os, sys, platform
+import conn, os, sys
 import postgis_utils
 import gdal
 import re 
@@ -41,14 +41,13 @@ class buffer:
         #del self.db
         
 class rasterLoaderProcess(QtCore.QThread):
-    def __init__(self,connstring,parent,fileName,tablename,epsg,blocksizex,blocksizey,nover,isexternal):
+    def __init__(self,connstring,fileName,tablename,epsg,blocksizex,blocksizey,nover,isexternal):
         QtCore.QThread.__init__(self)
         #setting main parameters
         self.cmd=['qgis','-r',fileName,"-t",tablename,"-s",epsg,"-I","-M"]
         self.cmd+=["-k",blocksizex+"x"+blocksizey]
         if (isexternal): self.cmd.append("-R")
         self.connstring=connstring
-        self.parent=parent
         self.nover=nover
         
     def write(self,text):
@@ -96,7 +95,7 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         return self.comboBox.currentText()
         
     def browseRaster(self):
-        fileName = QtGui.QFileDialog.getOpenFileName(self,"Open Image", os.getcwd(), "Image Files (*.tif)");
+        fileName = QtGui.QFileDialog.getOpenFileName(self,"Open Image", os.getcwd(), "GDAL Supported Files (*)");
         if (fileName):
             self.lineEdit.setText(str(fileName))
             self.getMetadata(str(fileName))
@@ -115,10 +114,11 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         blocksizey=str(self.spinBox_3.value())
         nover=self.spinBox.value()
         isexternal=self.checkBox_2.isChecked()
-        self.process=rasterLoaderProcess(connstring, self, fileName, tablename, epsg, blocksizex, blocksizey, nover, isexternal)
+        self.process=rasterLoaderProcess(connstring, fileName, tablename, epsg, blocksizex, blocksizey, nover, isexternal)
         QtCore.QObject.connect(self.process,QtCore.SIGNAL('writeText(PyQt_PyObject)'),self.plainTextEdit.appendPlainText)
         QtCore.QObject.connect(self.process,QtCore.SIGNAL('finished()'),self.finishLoadRaster)
-        self.process.start()
+        self.process.run()
+        #self.process.start()
         
 
     def finishLoadRaster(self):
@@ -146,3 +146,24 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         
         
         del ds
+
+if __name__=="__main__":
+    settings = QtCore.QSettings()
+    key = "/PostgreSQL/connections/wktraster"
+    settings.setValue(key + "/host", QtCore.QVariant("localhost"))
+    settings.setValue(key + "/port", QtCore.QVariant(5432))
+    settings.setValue(key + "/database", QtCore.QVariant("wktraster"))
+    settings.setValue(key + "/username", QtCore.QVariant("postgres"))
+    settings.setValue(key + "/password", QtCore.QVariant("teste"))
+    
+    
+    settings.setValue("/PostgreSQL/connections/selected", QtCore.QVariant("wktraster"))
+    
+    app = QtGui.QApplication(sys.argv)
+    
+    dlg = DlgRasterLoader()
+    dlg.show()
+    
+    retval = app.exec_()
+    
+    sys.exit(retval)
