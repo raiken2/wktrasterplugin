@@ -75,7 +75,7 @@ def listTables(parent,connstring):
     try:
         db = GeoDB(host=parmlist[2].split("=")[1],dbname=parmlist[1].split("=")[1],user=parmlist[3].split("=")[1],passwd=parmlist[4].split("=")[1],port=int(parmlist[5].split("=")[1]))
         rows=db.list_rastertables()
-    except DbError as e:
+    except DbError, e:
         QMessageBox.warning(None,"Error",str(e))#"Connection failed to "+connstring)
         return []
          
@@ -114,7 +114,7 @@ def listRIDs(parent, connstring, table):
         cursor = db.con.cursor()   
         result=db._exec_sql(cursor,"select rid from "+str(table))
         rows=cursor.fetchall()        
-    except DbError as e:
+    except DbError, e:
         QMessageBox.warning(None,"Error",str(e))#"Connection failed to "+connstring)
         return []
          

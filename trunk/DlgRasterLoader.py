@@ -19,10 +19,15 @@ email                : mauricio.dev@gmail.com
  ***************************************************************************/
 """
 
+
+
+
+
 from PyQt4 import QtCore, QtGui 
 from ui.DlgRasterLoader import Ui_DlgRasterLoader
 import conn, os, sys
 import postgis_utils
+from postgis_utils import DbError
 import gdal
 import re 
 
@@ -35,18 +40,27 @@ class buffer:
             return
         self.cursor = self.db.con.cursor()        
     def write(self,string):
-        self.db._exec_sql(self.cursor, string)
-    def commit(self):
-        self.db.con.commit()
+        try:
+            self.db._exec_sql(self.cursor, string)
+        except DbError, e:
+            raise DbError(e)
+            
+    def commit(self,write):
+        try:
+            self.db.con.commit()
+        except DbError, e:
+            raise write(e)
         #del self.db
         
 class rasterLoaderProcess(QtCore.QThread):
-    def __init__(self,connstring,fileName,tablename,epsg,blocksizex,blocksizey,nover,isexternal):
+    def __init__(self,connstring,fileName,tablename,epsg,blocksizex,blocksizey,nover,isexternal,isAppend):
         QtCore.QThread.__init__(self)
         #setting main parameters
         self.cmd=['qgis','-r',fileName,"-t",tablename,"-s",epsg,"-I","-M"]
-        self.cmd+=["-k",blocksizex+"x"+blocksizey]
+        if (blocksizex!=None):
+            self.cmd+=["-k",blocksizex+"x"+blocksizey]
         if (isexternal): self.cmd.append("-R")
+        if (isAppend): self.cmd.append('-a')
         self.connstring=connstring
         self.nover=nover
         
@@ -58,6 +72,8 @@ class rasterLoaderProcess(QtCore.QThread):
         self.write("Connecting to database...")
         #the sql buffer is going to run the commands as they are being sent to the buffer
         self.sqlBuffer=buffer(self.connstring)
+        oldStdOut=sys.stdout
+        sys.stderr=sys.stdout
         sys.stdout=self.sqlBuffer
         
         for i in range(1,self.nover+1):
@@ -67,14 +83,18 @@ class rasterLoaderProcess(QtCore.QThread):
             if (i>1): cmdi+=["-l",str(i)]
             
             sys.argv=cmdi
-            import raster2pgsql
-            #start the translation
-            raster2pgsql.main()
-            self.sqlBuffer.commit()
+            try: 
+                import raster2pgsql
+                #start the translation
+                raster2pgsql.main()
+                
+            except:        
+                self.write("Failed.")
+            self.sqlBuffer.commit(self.write)
             self.write("Finished storing overview "+str(i)+".")
             del raster2pgsql
         del self.sqlBuffer
-        
+        sys.stdout=oldStdOut
 
 class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
     def __init__(self): 
@@ -87,7 +107,8 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.loadRaster)
         QtCore.QObject.connect(self.pushButton, QtCore.SIGNAL("clicked()"), self.browseRaster)
-        self.widget.setVisible(False)
+        self.checkBox.setChecked(True)
+        self.checkBox.setChecked(False)
 
     def checkPostgisRasterExtension(self,connstring):
         pass
@@ -110,15 +131,19 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         fileName=str(self.lineEdit.text())
         tablename=str(self.lineEdit_3.text())#(os.path.split(fileName)[-1])[:-4]
         epsg=str(self.lineEdit_2.text())
-        blocksizex=str(self.spinBox_2.value())
-        blocksizey=str(self.spinBox_3.value())
+        if (self.checkBox_4.isChecked()):
+            blocksizex=str(self.spinBox_2.value())
+            blocksizey=str(self.spinBox_3.value())
+        else:
+            blocksizex=blocksizey=None
         nover=self.spinBox.value()
         isexternal=self.checkBox_2.isChecked()
-        self.process=rasterLoaderProcess(connstring, fileName, tablename, epsg, blocksizex, blocksizey, nover, isexternal)
+        isAppend=self.checkBox_3.isChecked()
+        self.process=rasterLoaderProcess(connstring, fileName, tablename, epsg, blocksizex, blocksizey, nover, isexternal,isAppend)
         QtCore.QObject.connect(self.process,QtCore.SIGNAL('writeText(PyQt_PyObject)'),self.plainTextEdit.appendPlainText)
         QtCore.QObject.connect(self.process,QtCore.SIGNAL('finished()'),self.finishLoadRaster)
-        self.process.run()
-        #self.process.start()
+        #self.process.run()
+        self.process.start()
         
 
     def finishLoadRaster(self):
