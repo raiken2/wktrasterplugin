@@ -26,7 +26,7 @@ def description():
 def version(): 
   return "Version 0.5.1" 
 def qgisMinimumVersion():
-  return "1.0"
+  return "1.7"
 def classFactory(iface): 
   # load wktRaster class from file wktRaster
   from wktRasterPlugin import wktRaster 
