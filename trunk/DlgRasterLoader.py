@@ -19,17 +19,18 @@ email                : mauricio.dev@gmail.com
  ***************************************************************************/
 """
 
-
-
-
-
 from PyQt4 import QtCore, QtGui 
 from ui.DlgRasterLoader import Ui_DlgRasterLoader
+from DlgNewConnection import DlgNewConnection
 import conn, os, sys
 import postgis_utils
 from postgis_utils import DbError
 import gdal
-import re 
+import re , math
+
+"""sys.path.append("/usr/lib/eclipse/plugins/org.python.pydev.debug_2.2.1.2011071313/pysrc/")
+import pydevd
+pydevd.settrace()"""
 
 class buffer:
     def __init__(self,connstring):
@@ -102,11 +103,8 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         # Set up the user interface from Designer. 
         self.setupUi(self) 
         #connections listing
-        dblist = conn.listDatabases()
-        self.comboBox.addItems(dblist.keys())
+        self.listDatabases()
         
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.loadRaster)
-        QtCore.QObject.connect(self.pushButton, QtCore.SIGNAL("clicked()"), self.browseRaster)
         self.checkBox.setChecked(True)
         self.checkBox.setChecked(False)
 
@@ -145,7 +143,7 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         #self.process.run()
         self.process.start()
         
-
+    
     def finishLoadRaster(self):
         self.plainTextEdit.appendPlainText("Finished.")
         QtGui.QApplication.restoreOverrideCursor()
@@ -165,25 +163,28 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
                 self.lineEdit_2.setText('-1')
             else:
                 self.lineEdit_2.setText(epsg.group().strip('\"\'') )
-        #self.spinBox_2.setValue(ds.RasterXSize)
-        #self.spinBox_3.setValue(ds.RasterYSize)
-        
+        #computing suggested overview
+        nX=math.pow(2,int(math.log(ds.RasterXSize,2))-2)
+        nY=math.pow(2,int(math.log(ds.RasterYSize,2))-2)
+        self.spinBox_2.setValue(nX)
+        self.spinBox_3.setValue(nY)
+        self.spinBox.setValue(3)
         
         
         del ds
+        
+    def listDatabases(self):
+        self.comboBox.clear()
+        dblist = conn.listDatabases()
+        self.comboBox.addItems(dblist.keys())
+        
+    def newConnection(self):
+        self.newConn=DlgNewConnection()
+        self.newConn.show()
+        self.listDatabases()
+
 
 if __name__=="__main__":
-    settings = QtCore.QSettings()
-    key = "/PostgreSQL/connections/wktraster"
-    settings.setValue(key + "/host", QtCore.QVariant("localhost"))
-    settings.setValue(key + "/port", QtCore.QVariant(5432))
-    settings.setValue(key + "/database", QtCore.QVariant("wktraster"))
-    settings.setValue(key + "/username", QtCore.QVariant("postgres"))
-    settings.setValue(key + "/password", QtCore.QVariant("teste"))
-    
-    
-    settings.setValue("/PostgreSQL/connections/selected", QtCore.QVariant("wktraster"))
-    
     app = QtGui.QApplication(sys.argv)
     
     dlg = DlgRasterLoader()

@@ -19,7 +19,7 @@ email                : mauricio.dev@gmail.com
  ***************************************************************************/
 """
 import os,sys
-"""sys.path.append("/home/mauricio/aplics/eclipse/plugins/org.python.pydev.debug_1.6.4.2011010200/pysrc")
+"""sys.path.append("/usr/lib/eclipse/plugins/org.python.pydev.debug_2.2.1.2011071313/pysrc/")
 import pydevd
 pydevd.settrace()"""
 
@@ -75,11 +75,13 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
         mode=['convexhull','row','table','db']
         return (mode[self.modeComboBox.currentIndex()])
 
-    def listRIds(self,i=0,j=0):
-        if (self.getMode()=='row'): 
-            connstring=str(conn.getConnString(self,self.getCurrentConnection()))
-            rids=conn.listRIDs(self, connstring, str(self.tableWidget.item(i,0).text())+"."+str(self.tableWidget.item(i,1).text()) )
-            self.ridComboBox.addItems(rids)
+    def listRIds(self,i=-1,j=-1):
+        if (i != -1):
+            if (self.getMode()=='row'): 
+                connstring=str(conn.getConnString(self,self.getCurrentConnection()))
+                rids=conn.listRIDs(self, connstring, str(self.tableWidget.item(i,0).text())+"."+str(self.tableWidget.item(i,1).text()) )
+                self.ridComboBox.clear()
+                self.ridComboBox.addItems(rids)
 
     def updateUIMode(self,i=0):
         mode=self.getMode()
@@ -96,7 +98,8 @@ class DlgAddRasterLayer(QtGui.QDialog,Ui_DlgAddRasterLayer):
             self.label_2.setVisible(True)
             self.lineEdit.setVisible(True)
             self.listTables()
-            self.listRIds()
+            if (self.tableWidget.rowCount()>0):
+                self.listRIds()
         else: #(convexhull and table)
             self.ridComboBox.setVisible(False)
             self.label_4.setVisible(False)

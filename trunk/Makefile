@@ -20,4 +20,4 @@ clean:
 	rm -f $(GEN_FILES) *.pyc
 
 package:
-	make && cd .. && rm -f db_manager.zip && zip -r db_manager.zip db_manager -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\*
+	make && cd .. && rm -f wktraster.zip && zip -r wktraster.zip wktraster -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\*
