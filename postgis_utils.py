@@ -324,7 +324,7 @@ class GeoDB:
 						geo.out_db,
 						geo.srid
 
-					FROM pg_class AS cla 
+					FROM (select oid, pg_class.* from (select relname from pg_class except select relname from pg_class,raster_overviews where relname=o_table_name) as exclude,pg_class where exclude.relname=pg_class.relname) AS cla 
 					JOIN pg_namespace AS nsp ON 
 						nsp.oid = cla.relnamespace
 
