@@ -18,6 +18,7 @@ email                : mauricio.dev@gmail.com
  *                                                                         *
  ***************************************************************************/
 """
+   
 # Import the PyQt and QGIS libraries
 from PyQt4.QtCore import * 
 from PyQt4.QtGui import *
@@ -92,3 +93,4 @@ class wktRaster:
     def gdalVersion(self):
         from osgeo import gdal
         return int(gdal.VersionInfo())
+

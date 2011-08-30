@@ -1,3 +1,9 @@
+version 0.5.2
+    Fixed bug when reading one row as raster in a database without raster tables.
+    The plugin now can upload raster as a standalone program.
+    Plugin now guesses good numbers for raster overviews.
+    
+
 version 0.5.1
         Bug fix- Exceptions handling.
 
