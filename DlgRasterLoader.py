@@ -168,6 +168,11 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         nY=math.pow(2,int(math.log(ds.RasterYSize,2))-2)
         self.spinBox_2.setValue(nX)
         self.spinBox_3.setValue(nY)
+        #if (ds.RasterXSize>ds.RasterYSize):
+        #    min=ds.RasterYSize
+        #else:
+        #    min=ds.RasterXSize
+        #self.spinBox.setValue(int(math.log((min/128),2)))
         self.spinBox.setValue(3)
         
         
