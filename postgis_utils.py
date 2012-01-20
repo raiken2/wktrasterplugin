@@ -279,7 +279,7 @@ class GeoDB:
 		return items
 	
 	def list_rastertables(self, schema=None):
-		""" get list of table with a raster column
+		""" get list of tables with a raster column
 			it returns:
 				name (table name)
 				namespace (schema)
@@ -312,12 +312,12 @@ class GeoDB:
 		if self.has_raster_columns and self.has_raster_columns_access:
 			geometry_column_from = u"""LEFT OUTER JOIN raster_columns AS geo ON 
 						cla.relname = geo.r_table_name AND nsp.nspname = r_table_schema AND 
-						lower(att.attname) = lower(r_column)"""
+						lower(att.attname) = lower(r_raster_column)"""
 		# get geometry info from geometry_columns if exists
 		# discovery of all tables and whether they contain a geometry column
 		sql = u"""SELECT 
 						cla.relname, nsp.nspname, cla.relkind = 'v', pg_get_userbyid(relowner), cla.reltuples, cla.relpages, 
-						CASE WHEN geo.r_column IS NOT NULL THEN geo.r_column ELSE att.attname END, 
+						CASE WHEN geo.r_raster_column IS NOT NULL THEN geo.r_raster_column ELSE att.attname END, 
 						geo.pixel_types,
 						geo.scale_x,
 						geo.scale_y,
