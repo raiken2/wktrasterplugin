@@ -1,8 +1,11 @@
+version 0.5.3
+    The loader had to be disabled since postgis' raster python loader is not working with the current trunk.
+    Updated the reader to make use of the new raster_columns view.
+
 version 0.5.2
     Fixed bug when reading one row as raster in a database without raster tables.
     The plugin now can upload raster as a standalone program.
     Plugin now guesses good numbers for raster overviews.
-    
 
 version 0.5.1
         Bug fix- Exceptions handling.
