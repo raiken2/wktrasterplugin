@@ -104,13 +104,6 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QCheckBox" name="checkBox">
-     <property name="text">
-      <string>Advanced Options</string>
-     </property>
-    </widget>
-   </item>
    <item row="5" column="0" colspan="2">
     <widget class="QWidget" name="widget" native="true">
      <property name="enabled">
@@ -120,6 +113,19 @@
       <bool>false</bool>
      </property>
      <layout class="QFormLayout" name="formLayout">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_4">
+        <property name="text">
+         <string>Custom tiling</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_6">
         <property name="sizePolicy">
@@ -245,7 +251,7 @@
          <number>1</number>
         </property>
         <property name="value">
-         <number>3</number>
+         <number>1</number>
         </property>
        </widget>
       </item>
@@ -260,16 +266,6 @@
        <widget class="QCheckBox" name="checkBox_3">
         <property name="text">
          <string>Append tiles to existing table</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_4">
-        <property name="text">
-         <string>Custom tiling</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -288,6 +284,19 @@
    </item>
    <item row="7" column="0" colspan="2">
     <widget class="QPlainTextEdit" name="plainTextEdit"/>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QCheckBox" name="checkBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Advanced Options (Temporarily Disabled)</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

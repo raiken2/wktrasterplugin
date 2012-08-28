@@ -64,6 +64,10 @@ class rasterLoaderProcess(QtCore.QThread):
         if (isAppend): self.cmd.append('-a')
         self.connstring=connstring
         self.nover=nover
+        #self.sql='python raster2pgsql.py -r '+self.cmd[2]+" -t "+tablename+" -s "+epsg+"-I -M"
+        #if( (blocksizex!=None) and (blocksizey!=None)):
+        #    self.sql+="-k "+blocksizex+"x"+blocksizey
+        
         
     def write(self,text):
         self.emit(QtCore.SIGNAL("writeText(PyQt_PyObject)"),text)
@@ -80,9 +84,11 @@ class rasterLoaderProcess(QtCore.QThread):
         for i in range(1,self.nover+1):
             #"-o",output,
             self.write("Storing overview "+str(i)+" on database...")
-            cmdi=self.cmd[:]
-            if (i>1): cmdi+=["-l",str(i)]
+            #self.write(self.sql+" -l "+str(i))
             
+            cmdi=self.cmd[:]
+            #if (i>1): cmdi+=["-l",str(i)]
+            #self.write(str(cmdi))
             sys.argv=cmdi
             try: 
                 import raster2pgsql
@@ -105,8 +111,8 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         #connections listing
         self.listDatabases()
         
-        self.checkBox.setChecked(True)
         self.checkBox.setChecked(False)
+        self.widget.setVisible(False)
 
     def checkPostgisRasterExtension(self,connstring):
         pass
@@ -129,14 +135,18 @@ class DlgRasterLoader(QtGui.QDialog,Ui_DlgRasterLoader):
         fileName=str(self.lineEdit.text())
         tablename=str(self.lineEdit_3.text())#(os.path.split(fileName)[-1])[:-4]
         epsg=str(self.lineEdit_2.text())
-        if (self.checkBox_4.isChecked()):
+        """if (self.checkBox_4.isChecked()):
             blocksizex=str(self.spinBox_2.value())
             blocksizey=str(self.spinBox_3.value())
         else:
             blocksizex=blocksizey=None
         nover=self.spinBox.value()
         isexternal=self.checkBox_2.isChecked()
-        isAppend=self.checkBox_3.isChecked()
+        isAppend=self.checkBox_3.isChecked()"""
+        blocksizex=blocksizey=None
+        nover=1
+        isexternal=False
+        isAppend=False
         self.process=rasterLoaderProcess(connstring, fileName, tablename, epsg, blocksizex, blocksizey, nover, isexternal,isAppend)
         QtCore.QObject.connect(self.process,QtCore.SIGNAL('writeText(PyQt_PyObject)'),self.plainTextEdit.appendPlainText)
         QtCore.QObject.connect(self.process,QtCore.SIGNAL('finished()'),self.finishLoadRaster)

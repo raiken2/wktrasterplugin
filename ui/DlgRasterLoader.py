@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/DlgRasterLoader.ui'
 #
-# Created: Mon Aug 29 21:29:58 2011
-#      by: PyQt4 UI code generator 4.8.3
+# Created: Tue Aug 28 16:14:53 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -76,16 +76,18 @@ class Ui_DlgRasterLoader(object):
         self.lineEdit_2.setSizePolicy(sizePolicy)
         self.lineEdit_2.setObjectName(_fromUtf8("lineEdit_2"))
         self.gridLayout.addWidget(self.lineEdit_2, 3, 1, 1, 1)
-        self.checkBox = QtGui.QCheckBox(DlgRasterLoader)
-        self.checkBox.setObjectName(_fromUtf8("checkBox"))
-        self.gridLayout.addWidget(self.checkBox, 4, 0, 1, 1)
         self.widget = QtGui.QWidget(DlgRasterLoader)
         self.widget.setEnabled(True)
         self.widget.setMouseTracking(False)
         self.widget.setObjectName(_fromUtf8("widget"))
         self.formLayout = QtGui.QFormLayout(self.widget)
+        self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
         self.formLayout.setMargin(0)
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
+        self.checkBox_4 = QtGui.QCheckBox(self.widget)
+        self.checkBox_4.setChecked(False)
+        self.checkBox_4.setObjectName(_fromUtf8("checkBox_4"))
+        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.checkBox_4)
         self.label_6 = QtGui.QLabel(self.widget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -104,7 +106,7 @@ class Ui_DlgRasterLoader(object):
         self.spinBox_2.setMaximumSize(QtCore.QSize(101, 27))
         self.spinBox_2.setMinimum(16)
         self.spinBox_2.setMaximum(16384)
-        self.spinBox_2.setProperty(_fromUtf8("value"), 128)
+        self.spinBox_2.setProperty("value", 128)
         self.spinBox_2.setObjectName(_fromUtf8("spinBox_2"))
         self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.spinBox_2)
         self.label_8 = QtGui.QLabel(self.widget)
@@ -125,7 +127,7 @@ class Ui_DlgRasterLoader(object):
         self.spinBox_3.setMaximumSize(QtCore.QSize(101, 27))
         self.spinBox_3.setMinimum(16)
         self.spinBox_3.setMaximum(16384)
-        self.spinBox_3.setProperty(_fromUtf8("value"), 128)
+        self.spinBox_3.setProperty("value", 128)
         self.spinBox_3.setObjectName(_fromUtf8("spinBox_3"))
         self.formLayout.setWidget(3, QtGui.QFormLayout.FieldRole, self.spinBox_3)
         self.label_7 = QtGui.QLabel(self.widget)
@@ -145,7 +147,7 @@ class Ui_DlgRasterLoader(object):
         self.spinBox.setMinimumSize(QtCore.QSize(101, 27))
         self.spinBox.setMaximumSize(QtCore.QSize(101, 27))
         self.spinBox.setMinimum(1)
-        self.spinBox.setProperty(_fromUtf8("value"), 3)
+        self.spinBox.setProperty("value", 1)
         self.spinBox.setObjectName(_fromUtf8("spinBox"))
         self.formLayout.setWidget(4, QtGui.QFormLayout.FieldRole, self.spinBox)
         self.checkBox_2 = QtGui.QCheckBox(self.widget)
@@ -154,10 +156,6 @@ class Ui_DlgRasterLoader(object):
         self.checkBox_3 = QtGui.QCheckBox(self.widget)
         self.checkBox_3.setObjectName(_fromUtf8("checkBox_3"))
         self.formLayout.setWidget(6, QtGui.QFormLayout.SpanningRole, self.checkBox_3)
-        self.checkBox_4 = QtGui.QCheckBox(self.widget)
-        self.checkBox_4.setChecked(True)
-        self.checkBox_4.setObjectName(_fromUtf8("checkBox_4"))
-        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.checkBox_4)
         self.gridLayout.addWidget(self.widget, 5, 0, 1, 2)
         self.buttonBox = QtGui.QDialogButtonBox(DlgRasterLoader)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -167,6 +165,11 @@ class Ui_DlgRasterLoader(object):
         self.plainTextEdit = QtGui.QPlainTextEdit(DlgRasterLoader)
         self.plainTextEdit.setObjectName(_fromUtf8("plainTextEdit"))
         self.gridLayout.addWidget(self.plainTextEdit, 7, 0, 1, 2)
+        self.checkBox = QtGui.QCheckBox(DlgRasterLoader)
+        self.checkBox.setEnabled(False)
+        self.checkBox.setCheckable(True)
+        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.gridLayout.addWidget(self.checkBox, 4, 0, 1, 2)
 
         self.retranslateUi(DlgRasterLoader)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), DlgRasterLoader.reject)
@@ -187,11 +190,11 @@ class Ui_DlgRasterLoader(object):
         self.label_3.setText(QtGui.QApplication.translate("DlgRasterLoader", "Output Table Name:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("DlgRasterLoader", "SRID:", None, QtGui.QApplication.UnicodeUTF8))
         self.lineEdit_2.setText(QtGui.QApplication.translate("DlgRasterLoader", "4326", None, QtGui.QApplication.UnicodeUTF8))
-        self.checkBox.setText(QtGui.QApplication.translate("DlgRasterLoader", "Advanced Options", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox_4.setText(QtGui.QApplication.translate("DlgRasterLoader", "Custom tiling", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("DlgRasterLoader", "Block size X (bytes): ", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("DlgRasterLoader", "Block size Y (bytes): ", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("DlgRasterLoader", "Number of overviews:", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_2.setText(QtGui.QApplication.translate("DlgRasterLoader", "Only register file as an external table", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_3.setText(QtGui.QApplication.translate("DlgRasterLoader", "Append tiles to existing table", None, QtGui.QApplication.UnicodeUTF8))
-        self.checkBox_4.setText(QtGui.QApplication.translate("DlgRasterLoader", "Custom tiling", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox.setText(QtGui.QApplication.translate("DlgRasterLoader", "Advanced Options (Temporarily Disabled)", None, QtGui.QApplication.UnicodeUTF8))
 
