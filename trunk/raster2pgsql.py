@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-# $Id: raster2pgsql.py 7038 2011-04-15 17:56:46Z jorgearevalo $
+# $Id$
 #
 # This is a simple utility used to dump GDAL dataset into HEX WKB stream.
 # It's considered as a prototype of raster2pgsql tool planned to develop
@@ -79,7 +79,7 @@ def is_nan(x):
 def parse_command_line():
     """Collects, parses and validates command line arguments."""
 
-    prs = OptionParser(version="%prog $Revision: 7038 $")
+    prs = OptionParser(version="%prog $Revision$")
 
     # Mandatory parameters
     grp0 = OptionGroup(prs, "Source and destination",
@@ -363,7 +363,7 @@ def make_sql_create_table(options, table = None, is_overview = False):
             sql = "CREATE TABLE %s (rid serial PRIMARY KEY, %s RASTER);\n" \
               % (make_sql_full_table_name(table), quote_sql_name(options.column))
         else:
-            sql = "CREATE TABLE %s (rid serial PRIMARY KEY);\n" \
+            sql = "CREATE TABLE %s (rid serial PRIMARY KEY, rast RASTER);\n" \
               % (make_sql_full_table_name(table))
 
     logit("SQL: %s" % sql)
@@ -857,9 +857,9 @@ def wkblify_raster_level(options, ds, level, band_range, infile, i):
             pixel_types = collect_pixel_types(ds, band_from, band_to)
             nodata_values = collect_nodata_values(ds, band_from, band_to)
             extent = calculate_bounding_box(ds, gt)
-            sql = make_sql_addrastercolumn(options, pixel_types, nodata_values,
-                                           pixel_size, block_size, extent)
-            options.output.write(sql)
+            #sql = make_sql_addrastercolumn(options, pixel_types, nodata_values,
+            #                               pixel_size, block_size, extent)
+            #options.output.write(sql)
         gen_table = options.table
         
     else:
@@ -872,8 +872,8 @@ def wkblify_raster_level(options, ds, level, band_range, infile, i):
         if i == 0:
             sql = make_sql_create_table(options, level_table, True)
             options.output.write(sql)
-            sql = make_sql_register_overview(options, level_table_name, level)
-            options.output.write(sql)
+            #sql = make_sql_register_overview(options, level_table_name, level)
+            #options.output.write(sql)
         gen_table = level_table
 
     # Write (original) raster to hex binary output
@@ -971,11 +971,12 @@ def main():
     opts.output.write('BEGIN;\n')
 
     # If overviews requested, CREATE TABLE raster_overviews
-    if opts.create_raster_overviews_table:
-        sql = make_sql_create_raster_overviews(opts)
-        opts.output.write(sql)
+    #if opts.create_raster_overviews_table:
+        #sql = make_sql_create_raster_overviews(opts)
+        #opts.output.write(sql)
 
     # Base raster schema
+
     if opts.overview_level == 1:
         # DROP TABLE
         if opts.drop_table:
@@ -1019,7 +1020,6 @@ def main():
     # Cleanup
     if opts.output != sys.stdout:
         sys.stdout = saved_out
-
         print "------------------------------------------------------------"
         print " Summary of GDAL to PostGIS Raster processing:"
         print "------------------------------------------------------------"

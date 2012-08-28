@@ -55,7 +55,7 @@ class wktRaster:
         else:
             self.iface.addPluginToMenu("PostGIS &Raster", self.AddLayeraction)
             self.iface.addPluginToMenu("PostGIS &Raster", self.LoadLayeraction)
-        self.LoadLayeraction.setEnabled(False)
+        #self.LoadLayeraction.setEnabled(False)
         
 
     def unload(self):

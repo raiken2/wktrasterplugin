@@ -1,3 +1,6 @@
+version 0.5.4
+    The loader has been reenabled but with a weaker version. 
+
 version 0.5.3
     The loader had to be disabled since postgis' raster python loader is not working with the current trunk.
     Updated the reader to make use of the new raster_columns view.
